@@ -10,7 +10,7 @@ if pkg_name not in sys.modules.keys():
 
 from zipic.console_line_interface import parse
 from zipic.logger import set_logger
-from zipic.processor import process_zip
+from zipic.processor import process_file
 
 
 def main():
@@ -19,7 +19,7 @@ def main():
 
     logging.info("Running the Zipic...")
 
-    process_zip(args.file_)
+    process_file(args.file_)
 
     logging.info("Done!")
 

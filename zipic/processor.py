@@ -5,9 +5,11 @@ import tempfile
 
 
 def check_if_its_zip(zip_name):
-    if not zipfile.is_zipfile(zip_name):
-        raise TypeError('Expected namely ZIP file.')
-    logging.info('"%s" is zip file', zip_name)
+    if zipfile.is_zipfile(zip_name):
+        logging.info('"%s" is a zip file', zip_name)
+        return True
+    logging.info('"%s" is not a zip file', zip_name)
+    return False
 
 
 def check_zips_for_errors(zip_obj):
@@ -21,15 +23,20 @@ def get_zips_png_file_names(zip_object):
     return [name for name in zip_object.namelist() if name[-4:] == '.png']
 
 
-def process_zip(zip_name):
-    check_if_its_zip(zip_name)
+def process_image_file(image_name):
+        logging.info("Processing PNG file...")
+        with os.popen('pngquant --ext ".png" --force 16 "%s"' % image_name):
+            pass
+        logging.info("Finished!")
+
+
+def process_zip_file(zip_name):
     zip_obj = zipfile.ZipFile(zip_name, 'r')
     zip_obj_abs_path = os.path.abspath(zip_obj.filename)
 
     curr_cwd = os.getcwd()
 
     try:
-
         check_zips_for_errors(zip_obj)
         zips_png_names = get_zips_png_file_names(zip_obj)
         logging.info("PNG files in given zip =>\n%s",
@@ -60,3 +67,10 @@ def process_zip(zip_name):
     finally:
         os.chdir(curr_cwd)
         zip_obj.close()
+
+
+def process_file(file_name):
+    if check_if_its_zip(file_name):
+        process_zip_file(file_name)
+    else:
+        process_image_file(file_name)
