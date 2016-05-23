@@ -65,7 +65,7 @@ def process_zip_file(zip_name):
             logging.info("Processing PNG files...")
 
             with os.popen('find . -name "*.png" -exec '
-                          'pngquant --ext ".png" --force 16 {} \;'):
+                          'pngquant --ext ".png" --force 256 {} \;'):
                 pass
 
             logging.info("Update the source archive...")
