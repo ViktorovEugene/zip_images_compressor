@@ -19,7 +19,7 @@ def main():
 
     logging.info("Running the Zipic...")
 
-    process_zip(args.file_.name)
+    process_zip(args.file_)
 
     logging.info("Done!")
 
