@@ -2,6 +2,8 @@ import os
 import zipfile
 import logging
 import tempfile
+import shlex
+from subprocess import Popen, PIPE
 
 
 def check_if_its_zip(zip_name):
@@ -25,8 +27,20 @@ def get_zips_png_file_names(zip_object):
 
 def process_image_file(image_name):
         logging.info("Processing PNG file...")
-        with os.popen('pngquant --ext ".png" --force 16 "%s"' % image_name):
-            pass
+        command_line = '/usr/bin/pngquant --ext ".png" --force 256 "%s"' % \
+                       image_name
+        args = shlex.split(command_line)
+        with Popen(args, stderr=PIPE) as popen_obj:
+            outs, errs = popen_obj.communicate(timeout=60)
+            if popen_obj.returncode != 0:
+                if b"Not a PNG file" in errs:
+                    err = '"%s" is not a PNG file.' % image_name
+                    raise TypeError(err)
+                else:
+                    err = 'the "pngquant" subprocess runninghas failed with ' \
+                          'the next error message\n%s"' % errs
+                    raise ChildProcessError(err)
+
         logging.info("Finished!")
 
 
