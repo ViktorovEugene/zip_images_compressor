@@ -21,8 +21,8 @@ def check_zips_for_errors(zip_obj):
                                  bad_zip_content)
 
 
-def get_zips_png_file_names(zip_object):
-    return [name for name in zip_object.namelist() if name[-4:] == '.png']
+def get_files_in_zip_by_suffix(zip_object, suffix):
+    return [name for name in zip_object.namelist() if name[-4:] == suffix]
 
 
 def process_image_file(image_name):
@@ -52,30 +52,35 @@ def process_zip_file(zip_name):
 
     try:
         check_zips_for_errors(zip_obj)
-        zips_png_names = get_zips_png_file_names(zip_obj)
-        logging.info("PNG files in given zip =>\n%s",
-                     ', '.join(zips_png_names))
+        zips_png_names = get_files_in_zip_by_suffix(zip_obj, '.png')
+        zips_jpeg_names = get_files_in_zip_by_suffix(zip_obj, '.jpg')
+        zips_all_images = zips_png_names + zips_jpeg_names
+        logging.info("image files in given zip =>\n%s",
+                     ', '.join(zips_all_images))
 
         with tempfile.TemporaryDirectory(suffix='_zip') as tmpdirname:
-            zip_obj.extractall(tmpdirname, zips_png_names)
+            zip_obj.extractall(tmpdirname, zips_all_images)
             zip_obj.close()
 
             os.chdir(tmpdirname)
 
             logging.info("Processing PNG files...")
-
             with os.popen('find . -name "*.png" -exec '
                           'pngquant --ext ".png" --force 256 {} \;'):
                 pass
 
-            logging.info("Update the source archive...")
+            logging.info("Processing JPEG files...")
+            with os.popen('find . -name "*.jpg" -exec '
+                          'jpegoptim -q {} \;'):
+                pass
 
+            logging.info("Update the source archive with compressed files...")
             with os.popen('zip -r %s "%s"' % (zip_obj_abs_path,
-                                              '" "'.join(zips_png_names))
+                                              '" "'.join(zips_all_images))
                           ) as file_:
                 console_run_result = file_.read()
 
-            logging.info('"zip" console call:\n\t%s',
+            logging.info('"zip" process:\n\t%s',
                          '\n\t'.join(console_run_result.split('\n')))
 
     finally:
